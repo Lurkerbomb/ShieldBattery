@@ -4,7 +4,8 @@ A headless OpenBW/BWAPI executable that simulates Remastered replays and writes
 frame-indexed NDJSON. This is a developer prototype; it is not connected to the
 Electron app or included in its installer.
 
-The core is adapted from starcraft-masters' native replay simulator. The build
+The core is adapted from starcraft-masters' `native/replay-simulator` at
+`a89a84d785ce2451626e558b8703ebb8a2819f85`. The build
 fetches OpenBW at `8265ec449b903e0752060a00ed5f930a3656bf00` and OpenBW BWAPI at
 `48124ba8ed1b4d52b3dfd52acbaf34afb9a37fe2`, applies the adjacent SCR patches,
 and verifies the revisions, patched file contents, and changed-file sets at
@@ -115,7 +116,21 @@ CTest exercises synthetic Remastered compressed blocks (including CRC and
 truncation failures), the unframed replay field, and executable input validation.
 Full validation requires the same real replay and game data on Mac and Windows,
 comparison of snapshots/events after normalizing execution-local unit IDs, and
-review of the fidelity diagnostics. Do not commit game archives, extracted
+review of the fidelity diagnostics. The comparison utility preserves each unit's
+identity using its birth frame, owner, type and position, rejects ambiguous
+identities, and compares record multisets (including event multiplicity):
+
+```sh
+python native/replay-analyzer/tests/compare-output.py baseline.ndjson candidate.ndjson
+```
+
+A local macOS arm64 extraction check matched all 22,610 records through frame
+31,625 for replay SHA-256
+`462f9dc9bb1cc7b7212290ffe571a9cc979f4f2e26456721d3b715f7b6654f43` against the
+source simulator. This checks extraction parity, not agreement with the live
+Remastered engine or Windows runtime parity.
+
+Do not commit game archives, extracted
 Blizzard assets, or private player replays.
 
 Keep dependency licensing and source provenance intact. OpenBW BWAPI's pinned
