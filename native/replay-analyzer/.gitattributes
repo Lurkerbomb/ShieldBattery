@@ -1,0 +1,2 @@
+# Patches carry upstream line endings that must survive checkout unchanged.
+*.patch -text
