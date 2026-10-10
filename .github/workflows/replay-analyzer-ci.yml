@@ -1,0 +1,45 @@
+name: Replay analyzer CI
+
+on:
+  push:
+    paths:
+      - '.github/workflows/replay-analyzer-ci.yml'
+      - 'native/replay-analyzer/**'
+  pull_request:
+    paths:
+      - '.github/workflows/replay-analyzer-ci.yml'
+      - 'native/replay-analyzer/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: replay-analyzer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install zlib
+        shell: pwsh
+        run: vcpkg install zlib:x64-windows-static-md
+      - name: Configure
+        shell: pwsh
+        run: >-
+          cmake -S native/replay-analyzer -B build/replay-analyzer -A x64
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=x64-windows-static-md
+      - name: Build
+        run: cmake --build build/replay-analyzer --config Release --parallel 4
+      - name: Test without proprietary game data
+        run: ctest --test-dir build/replay-analyzer -C Release --output-on-failure
+      - uses: actions/upload-artifact@v4
+        with:
+          name: replay-analyzer-windows-x64
+          path: build/replay-analyzer/bin/sb-replay-analyzer.exe
+          if-no-files-found: error
+          retention-days: 7
