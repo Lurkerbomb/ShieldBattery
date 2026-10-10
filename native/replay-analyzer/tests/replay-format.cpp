@@ -1,7 +1,8 @@
-#include "replay.h"
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+
+#include "replay.h"
 
 void require(bool condition, const char* message) {
   if (!condition) throw std::runtime_error(message);
